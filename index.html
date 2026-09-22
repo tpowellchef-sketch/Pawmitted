@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Pawmitted - Explore Together</title>
     
     <!-- Google Fonts: Poppins (Headings) & Inter (Body) -->
@@ -38,6 +38,7 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            height: 100dvh;
             overflow: hidden;
         }
 
@@ -57,6 +58,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
+            height: 100dvh;
             background-color: var(--primary-green);
             display: flex;
             flex-direction: column;
@@ -181,6 +183,7 @@
             display: flex;
             flex: 1;
             height: calc(100vh - 65px);
+            height: calc(100dvh - 65px);
             position: relative;
         }
 
@@ -191,7 +194,7 @@
             display: flex;
             flex-direction: column;
             z-index: 500;
-            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
             position: absolute;
             top: 16px;
             left: 16px;
@@ -425,33 +428,48 @@
             margin: 4px 0 8px 0;
         }
 
-        /* MOBILE BOTTOM SHEET & FIX FOR MINIMIZE BUTTON */
+        /* IPHONE & MOBILE BOTTOM SHEET STYLES */
         @media (max-width: 768px) {
             .sidebar {
                 width: calc(100% - 32px);
                 top: auto;
-                bottom: 20px;
+                bottom: calc(16px + env(safe-area-inset-bottom, 0px));
                 left: 16px;
-                height: 50vh;
-                max-height: calc(100vh - 100px);
+                height: 48vh;
+                height: 48dvh;
+                max-height: 70vh;
                 border-radius: 20px;
+                margin-bottom: 0;
             }
 
             .sidebar.minimized {
-                width: 56px;
-                height: 56px;
-                bottom: 20px;
+                width: 52px;
+                height: 52px;
+                bottom: calc(24px + env(safe-area-inset-bottom, 0px));
                 left: 16px;
-                border-radius: 28px;
+                top: auto;
+                border-radius: 26px;
                 background-color: var(--primary-green);
-                box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
                 z-index: 999;
+                padding: 0;
             }
 
             .sidebar.minimized .sidebar-header {
-                justify-content: center;
-                padding: 0;
+                width: 100%;
                 height: 100%;
+                padding: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .sidebar.minimized .toggle-sidebar-btn {
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                background: transparent;
+                font-size: 22px;
             }
 
             .sidebar.minimized .sidebar-header-title {
