@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -43,6 +43,100 @@
 
         h1, h2, h3, h4 {
             font-family: 'Poppins', sans-serif;
+        }
+
+        /* INTRO SPLASH SCREEN ANIMATION */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--primary-green);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease-out, visibility 0.8s ease-out;
+        }
+
+            #splash-screen.fade-out {
+                opacity: 0;
+                visibility: hidden;
+            }
+
+        .splash-icon {
+            font-size: 72px;
+            margin-bottom: 16px;
+            animation: pulsePaw 1.2s infinite ease-in-out alternate;
+        }
+
+        .splash-title {
+            color: var(--white);
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s forwards ease-out 0.3s;
+        }
+
+        .splash-tagline {
+            color: var(--sage-green);
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-top: 6px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s forwards ease-out 0.6s;
+        }
+
+        .splash-loader {
+            margin-top: 32px;
+            width: 160px;
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .splash-loader-bar {
+            width: 0%;
+            height: 100%;
+            background-color: var(--adventure-orange);
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: loadProgress 2.2s forwards cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        @keyframes pulsePaw {
+            0% {
+                transform: scale(1);
+            }
+
+            100% {
+                transform: scale(1.18);
+            }
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes loadProgress {
+            0% {
+                width: 0%;
+            }
+
+            100% {
+                width: 100%;
+            }
         }
 
         /* HEADER & NAVBAR */
@@ -283,6 +377,16 @@
 </head>
 <body>
 
+    <!-- INTRO ANIMATION SPLASH SCREEN -->
+    <div id="splash-screen">
+        <div class="splash-icon">🐾</div>
+        <h1 class="splash-title">Pawmitted</h1>
+        <p class="splash-tagline">Explore Together</p>
+        <div class="splash-loader">
+            <div class="splash-loader-bar"></div>
+        </div>
+    </div>
+
     <!-- BRAND HEADER -->
     <header>
         <div class="brand-container">
@@ -321,6 +425,18 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
+        // INTRO ANIMATION DISMISSAL
+        window.addEventListener('load', () => {
+        setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        splash.classList.add('fade-out');
+        // Ensure map resizes properly after splash fades out
+        setTimeout(() => {
+        map.invalidateSize();
+        }, 800);
+        }, 2300);
+        });
+
         const venues = [
         { id: 1, name: "The Gipsy Moth", category: "Pub", address: "60 Greenwich Church St", notes: "Dogs welcome inside and terrace", lat: 51.4823, lon: -0.0096 },
         { id: 2, name: "The Greenwich Tavern", category: "Pub", address: "King William Walk", notes: "Dogs welcome throughout", lat: 51.4802, lon: -0.0071 },
@@ -368,7 +484,7 @@
 
         const map = L.map('map').setView([userLat, userLon], 14);
 
-        // ESRI WORLD STREET MAP TILES (Fully free, zero API keys, no 403 blocks on local files)
+        // ESRI WORLD STREET MAP TILES
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 19,
         attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
