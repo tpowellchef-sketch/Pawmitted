@@ -1,0 +1,486 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pawmitted - Explore Together</title>
+
+    <!-- Google Fonts: Poppins (Headings) & Inter (Body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+
+    <!-- Leaflet OpenStreetMap CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        /* BRAND PALETTE & TYPOGRAPHY */
+        :root {
+            --primary-green: #1E4D3B;
+            --sage-green: #78A46D;
+            --adventure-orange: #F4A261;
+            --warm-cream: #F8F5F0;
+            --deep-navy: #1E293B;
+            --light-gray: #E2E8F0;
+            --white: #FFFFFF;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--deep-navy);
+            background-color: var(--warm-cream);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* HEADER & NAVBAR */
+        header {
+            background-color: var(--primary-green);
+            color: var(--white);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            z-index: 1000;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 38px;
+            height: 38px;
+            background-color: var(--adventure-orange);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .brand-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-tagline {
+            font-size: 0.85rem;
+            color: var(--sage-green);
+            font-weight: 500;
+            display: block;
+        }
+
+        /* LAYOUT CONTAINER */
+        .app-container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 65px);
+            position: relative;
+        }
+
+        /* SIDEBAR / CONTROLS */
+        .sidebar {
+            width: 420px;
+            background-color: var(--white);
+            border-right: 1px solid var(--light-gray);
+            display: flex;
+            flex-direction: column;
+            z-index: 500;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+        }
+
+        .controls {
+            padding: 16px;
+            background-color: var(--warm-cream);
+            border-bottom: 1px solid var(--light-gray);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+            .search-box:focus {
+                border-color: var(--primary-green);
+            }
+
+        .filter-buttons {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background-color: var(--white);
+            border: 1px solid var(--light-gray);
+            color: var(--deep-navy);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+            .filter-btn.active, .filter-btn:hover {
+                background-color: var(--primary-green);
+                color: var(--white);
+                border-color: var(--primary-green);
+            }
+
+        /* VENUE LIST */
+        .venue-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .venue-card {
+            background: var(--white);
+            border: 1px solid var(--light-gray);
+            border-radius: 10px;
+            padding: 14px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+        }
+
+            .venue-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+                border-color: var(--sage-green);
+            }
+
+        .venue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 4px;
+        }
+
+        .venue-name {
+            font-size: 1.05rem;
+            color: var(--primary-green);
+            font-weight: 600;
+        }
+
+        .venue-category {
+            background-color: var(--warm-cream);
+            color: var(--deep-navy);
+            font-size: 0.72rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .venue-address {
+            font-size: 0.85rem;
+            color: #64748B;
+            margin-bottom: 8px;
+        }
+
+        .venue-notes {
+            font-size: 0.85rem;
+            background-color: #F1F5F9;
+            padding: 8px;
+            border-radius: 6px;
+            border-left: 3px solid var(--sage-green);
+            margin-bottom: 10px;
+        }
+
+        .venue-distance {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--adventure-orange);
+            margin-bottom: 8px;
+        }
+
+        /* DIRECTION BUTTONS */
+        .directions-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .dir-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 6px 0;
+            background-color: var(--warm-cream);
+            border: 1px solid var(--light-gray);
+            border-radius: 6px;
+            text-decoration: none;
+            color: var(--deep-navy);
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+            .dir-btn:hover {
+                background-color: var(--adventure-orange);
+                color: var(--white);
+                border-color: var(--adventure-orange);
+            }
+
+        /* MAP CONTAINER */
+        #map {
+            flex: 1;
+            height: 100%;
+            z-index: 10;
+        }
+
+        .pawmitted-trail {
+            border-bottom: 2px dashed var(--adventure-orange);
+            margin: 4px 0 8px 0;
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column-reverse;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: 50%;
+            }
+
+            #map {
+                height: 50%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BRAND HEADER -->
+    <header>
+        <div class="brand-container">
+            <div class="brand-logo">🐾</div>
+            <div>
+                <span class="brand-title">Pawmitted</span>
+                <span class="brand-tagline">Explore Together</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-container">
+        <!-- SIDEBAR CONTROLS & VENUE LIST -->
+        <div class="sidebar">
+            <div class="controls">
+                <input type="text" id="searchInput" class="search-box" placeholder="Search venues or area..." onkeyup="filterVenues()">
+                <div class="pawmitted-trail"></div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="setCategory('All', this)">All</button>
+                    <button class="filter-btn" onclick="setCategory('Pub', this)">Pubs</button>
+                    <button class="filter-btn" onclick="setCategory('Restaurant', this)">Restaurants</button>
+                    <button class="filter-btn" onclick="setCategory('Coffee Shop', this)">Cafes</button>
+                    <button class="filter-btn" onclick="setCategory('Pet Retail', this)">Pet Shops</button>
+                    <button class="filter-btn" onclick="setCategory('Supermarket', this)">Supermarkets</button>
+                </div>
+            </div>
+
+            <div id="venueList" class="venue-list"></div>
+        </div>
+
+        <!-- VISUAL MAP -->
+        <div id="map"></div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        const venues = [
+        { id: 1, name: "The Gipsy Moth", category: "Pub", address: "60 Greenwich Church St", notes: "Dogs welcome inside and terrace", lat: 51.4823, lon: -0.0096 },
+        { id: 2, name: "The Greenwich Tavern", category: "Pub", address: "King William Walk", notes: "Dogs welcome throughout", lat: 51.4802, lon: -0.0071 },
+        { id: 3, name: "The Britannia SMOK'D", category: "Pub", address: "Greenwich", notes: "Dogs welcome in bar area", lat: 51.4795, lon: -0.0090 },
+        { id: 4, name: "Enderby House", category: "Pub", address: "Greenwich Peninsula", notes: "Dog friendly", lat: 51.4920, lon: 0.0035 },
+        { id: 5, name: "Davy's Wine Vaults", category: "Restaurant", address: "Greenwich", notes: "Dogs welcome", lat: 51.4776, lon: -0.0118 },
+        { id: 6, name: "The Prince of Greenwich", category: "Pub", address: "Royal Hill", notes: "Dog friendly", lat: 51.4760, lon: -0.0093 },
+        { id: 7, name: "The Pelton Arms", category: "Pub", address: "Pelton Road", notes: "Dog friendly", lat: 51.4862, lon: 0.0021 },
+        { id: 8, name: "Ye Olde Rose & Crown", category: "Pub", address: "Crooms Hill", notes: "Dog friendly", lat: 51.4798, lon: -0.0084 },
+        { id: 9, name: "Richard the First", category: "Pub", address: "Royal Hill", notes: "Dog friendly", lat: 51.4763, lon: -0.0090 },
+        { id: 10, name: "Kings Arms", category: "Pub", address: "King William Walk", notes: "Dog friendly", lat: 51.4811, lon: -0.0072 },
+        { id: 11, name: "Cutty Sark Pub", category: "Pub", address: "Ballast Quay", notes: "Dog friendly", lat: 51.4856, lon: -0.0007 },
+        { id: 12, name: "Ashburnham Arms", category: "Pub", address: "Ashburnham Grove", notes: "Dog friendly", lat: 51.4748, lon: -0.0142 },
+        { id: 13, name: "The Guildford Arms", category: "Pub", address: "Guildford Grove", notes: "Dog friendly", lat: 51.4740, lon: -0.0125 },
+        { id: 14, name: "The River Ale House", category: "Pub", address: "Woolwich Road", notes: "Dog friendly", lat: 51.4851, lon: 0.0210 },
+        { id: 15, name: "Bill's Restaurant & Bar", category: "Restaurant", address: "Greenwich", notes: "Dogs on ground floor", lat: 51.4815, lon: -0.0090 },
+        { id: 16, name: "Sticks'n'Sushi", category: "Restaurant", address: "O2 Greenwich", notes: "Dogs on terrace", lat: 51.5031, lon: 0.0032 },
+        { id: 17, name: "El Alquimista", category: "Restaurant", address: "Greenwich", notes: "Dogs welcome", lat: 51.4800, lon: -0.0085 },
+        { id: 18, name: "Champagne + Fromage", category: "Restaurant", address: "Church Street", notes: "Dog friendly", lat: 51.4818, lon: -0.0093 },
+        { id: 19, name: "The Lost Hour", category: "Restaurant", address: "Greenwich High Road", notes: "Dog friendly", lat: 51.4782, lon: -0.0105 },
+        { id: 20, name: "Greenwich Grind", category: "Coffee Shop", address: "Nelson Road", notes: "Dog friendly café area", lat: 51.4812, lon: -0.0089 },
+        { id: 21, name: "River Gardens Café", category: "Coffee Shop", address: "Greenwich", notes: "Dog friendly", lat: 51.4881, lon: 0.0015 },
+        { id: 22, name: "Coffee and Beyond", category: "Coffee Shop", address: "Greenwich High Road", notes: "Dog friendly", lat: 51.4770, lon: -0.0120 },
+        { id: 23, name: "Starbucks Cutty Sark", category: "Coffee Shop", address: "Greenwich Church Street", notes: "Dog friendly", lat: 51.4820, lon: -0.0092 },
+        { id: 24, name: "15Grams Coffee House", category: "Coffee Shop", address: "Greenwich Church Street", notes: "Dog friendly", lat: 51.4817, lon: -0.0091 },
+        { id: 25, name: "Kitchen Garden Café", category: "Coffee Shop", address: "Trafalgar Road", notes: "Dog treats available", lat: 51.4842, lon: 0.0030 },
+        { id: 26, name: "Black Eye Coffee", category: "Coffee Shop", address: "Trafalgar Road", notes: "Dog friendly", lat: 51.4845, lon: 0.0041 },
+        { id: 27, name: "Coffee Couch", category: "Coffee Shop", address: "North Greenwich", notes: "Dog friendly", lat: 51.5005, lon: 0.0045 },
+        { id: 28, name: "Crosstown Doughnuts", category: "Coffee Shop", address: "Greenwich Market", notes: "Dogs welcome", lat: 51.4816, lon: -0.0088 },
+        { id: 29, name: "Pets at Home Blackheath", category: "Pet Retail", address: "Blackheath Road", notes: "Dogs welcome", lat: 51.4740, lon: -0.0180 },
+        { id: 30, name: "Pets Corner Blackheath", category: "Pet Retail", address: "Montpelier Vale", notes: "Dogs welcome", lat: 51.4690, lon: 0.0060 },
+        { id: 31, name: "Pets Pantry", category: "Pet Retail", address: "Chequers Parade", notes: "Dogs welcome", lat: 51.4830, lon: 0.0100 },
+        { id: 32, name: "Tesco Greenwich", category: "Supermarket", address: "Various Greenwich", notes: "Assistance dogs only", lat: 51.4790, lon: -0.0100 },
+        { id: 33, name: "Sainsbury's Greenwich", category: "Supermarket", address: "Various Greenwich", notes: "Assistance dogs only", lat: 51.4810, lon: -0.0050 },
+        { id: 34, name: "Waitrose Greenwich", category: "Supermarket", address: "Various Greenwich", notes: "Assistance dogs only", lat: 51.4825, lon: -0.0120 },
+        { id: 35, name: "M&S Food Greenwich", category: "Supermarket", address: "Various Greenwich", notes: "Assistance dogs only", lat: 51.4805, lon: -0.0080 },
+        { id: 36, name: "Aldi Greenwich", category: "Supermarket", address: "Various Greenwich", notes: "Assistance dogs only", lat: 51.4840, lon: 0.0010 },
+        { id: 37, name: "Lidl Greenwich", category: "Supermarket", address: "Various Greenwich", notes: "Assistance dogs only", lat: 51.4780, lon: -0.0150 },
+        { id: 38, name: "Morrisons Greenwich", category: "Supermarket", address: "Various Greenwich", notes: "Assistance dogs only", lat: 51.4860, lon: 0.0080 }
+        ];
+
+        let userLat = 51.4828;
+        let userLon = -0.0096;
+        let selectedCategory = 'All';
+
+        const map = L.map('map').setView([userLat, userLon], 14);
+
+        // ESRI WORLD STREET MAP TILES (Fully free, zero API keys, no 403 blocks on local files)
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+        }).addTo(map);
+
+        let markers = [];
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+        }
+
+        function getDirectionsUrl(destLat, destLon, mode) {
+        return `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLon}&destination=${destLat},${destLon}&travelmode=${mode}`;
+        }
+
+        function renderVenues() {
+        const listContainer = document.getElementById('venueList');
+        listContainer.innerHTML = '';
+
+        markers.forEach(m => map.removeLayer(m));
+        markers = [];
+
+        const searchVal = document.getElementById('searchInput').value.toLowerCase();
+
+        let filtered = venues.map(v => {
+        v.distance = calculateDistance(userLat, userLon, v.lat, v.lon);
+        return v;
+        }).filter(v => {
+        const matchesCategory = (selectedCategory === 'All') || (v.category.includes(selectedCategory));
+        const matchesSearch = v.name.toLowerCase().includes(searchVal) ||
+        v.address.toLowerCase().includes(searchVal) ||
+        v.notes.toLowerCase().includes(searchVal);
+        return matchesCategory && matchesSearch;
+        });
+
+        filtered.sort((a, b) => a.distance - b.distance);
+
+        filtered.forEach(v => {
+        const marker = L.marker([v.lat, v.lon]).addTo(map);
+        marker.bindPopup(`
+        <strong>${v.name}</strong><br>
+        ${v.category} • ${v.notes}<br>
+        <small>${v.address}</small>
+        `);
+        markers.push(marker);
+
+        const card = document.createElement('div');
+        card.className = 'venue-card';
+        card.onclick = () => {
+        map.flyTo([v.lat, v.lon], 16);
+        marker.openPopup();
+        };
+
+        card.innerHTML = `
+        <div class="venue-header">
+        <span class="venue-name">${v.name}</span>
+        <span class="venue-category">${v.category}</span>
+        </div>
+        <div class="venue-address">${v.address}</div>
+        <div class="venue-notes">🐾 ${v.notes}</div>
+        <div class="venue-distance">📍 ${v.distance.toFixed(2)} km away</div>
+        <div class="directions-grid">
+        <a href="${getDirectionsUrl(v.lat, v.lon, 'driving')}" target="_blank" class="dir-btn" onclick="event.stopPropagation()">🚗 Car</a>
+        <a href="${getDirectionsUrl(v.lat, v.lon, 'transit')}" target="_blank" class="dir-btn" onclick="event.stopPropagation()">🚆 Train</a>
+        <a href="${getDirectionsUrl(v.lat, v.lon, 'walking')}" target="_blank" class="dir-btn" onclick="event.stopPropagation()">🚶 Walk</a>
+        <a href="${getDirectionsUrl(v.lat, v.lon, 'bicycling')}" target="_blank" class="dir-btn" onclick="event.stopPropagation()">🚲 Bike</a>
+        </div>
+        `;
+        listContainer.appendChild(card);
+        });
+        }
+
+        function filterVenues() {
+        renderVenues();
+        }
+
+        function setCategory(cat, btn) {
+        selectedCategory = cat;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderVenues();
+        }
+
+        if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+        userLat = pos.coords.latitude;
+        userLon = pos.coords.longitude;
+        map.setView([userLat, userLon], 14);
+
+        L.circleMarker([userLat, userLon], {
+        radius: 8,
+        fillColor: "#F4A261",
+        color: "#FFFFFF",
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.9
+        }).addTo(map).bindPopup("Your Location").openPopup();
+
+        renderVenues();
+        }, () => {
+        renderVenues();
+        });
+        } else {
+        renderVenues();
+        }
+    </script>
+</body>
+</html>
