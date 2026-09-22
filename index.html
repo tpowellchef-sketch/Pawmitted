@@ -45,6 +45,11 @@
             font-family: 'Poppins', sans-serif;
         }
 
+        /* HIDE LEAFLET ATTRIBUTION TEXT */
+        .leaflet-control-attribution {
+            display: none !important;
+        }
+
         /* INTRO SPLASH SCREEN ANIMATION */
         #splash-screen {
             position: fixed;
@@ -189,16 +194,87 @@
             position: relative;
         }
 
-        /* SIDEBAR / CONTROLS */
+        /* FLOATING SIDEBAR / CONTROLS */
         .sidebar {
-            width: 420px;
+            width: 400px;
             background-color: var(--white);
-            border-right: 1px solid var(--light-gray);
             display: flex;
             flex-direction: column;
             z-index: 500;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            bottom: 16px;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.05);
         }
+
+            /* MINIMIZED DESKTOP STATE */
+            .sidebar.minimized {
+                width: 54px;
+                height: 54px;
+                bottom: auto;
+                border-radius: 27px;
+                cursor: pointer;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+                background-color: var(--primary-green);
+            }
+
+                .sidebar.minimized .controls,
+                .sidebar.minimized .venue-list,
+                .sidebar.minimized .sidebar-header-title {
+                    opacity: 0;
+                    pointer-events: none;
+                    display: none !important;
+                }
+
+                .sidebar.minimized .sidebar-header {
+                    padding: 0;
+                    height: 100%;
+                    justify-content: center;
+                    background: transparent;
+                    border: none;
+                }
+
+        .sidebar-header {
+            padding: 14px 16px;
+            background-color: var(--primary-green);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-header-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* TOGGLE BUTTON */
+        .toggle-sidebar-btn {
+            width: 36px;
+            height: 36px;
+            background-color: rgba(255, 255, 255, 0.15);
+            color: var(--white);
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+
+            .toggle-sidebar-btn:hover {
+                background-color: var(--adventure-orange);
+            }
 
         .controls {
             padding: 16px;
@@ -349,7 +425,7 @@
 
         /* MAP CONTAINER */
         #map {
-            flex: 1;
+            width: 100%;
             height: 100%;
             z-index: 10;
         }
@@ -359,19 +435,34 @@
             margin: 4px 0 8px 0;
         }
 
+        /* MOBILE BOTTOM SHEET */
         @media (max-width: 768px) {
-            .app-container {
-                flex-direction: column-reverse;
-            }
-
             .sidebar {
-                width: 100%;
-                height: 50%;
+                width: calc(100% - 32px);
+                top: auto;
+                bottom: 16px;
+                left: 16px;
+                height: 50vh;
+                border-radius: 20px;
             }
 
-            #map {
-                height: 50%;
-            }
+                .sidebar.minimized {
+                    width: calc(100% - 32px);
+                    height: 52px;
+                    bottom: 16px;
+                    border-radius: 26px;
+                    background-color: var(--primary-green);
+                }
+
+                    .sidebar.minimized .sidebar-header {
+                        justify-content: space-between;
+                        padding: 0 16px;
+                    }
+
+                    .sidebar.minimized .sidebar-header-title {
+                        display: flex !important;
+                        opacity: 1;
+                    }
         }
     </style>
 </head>
@@ -399,8 +490,19 @@
     </header>
 
     <div class="app-container">
-        <!-- SIDEBAR CONTROLS & VENUE LIST -->
-        <div class="sidebar">
+        <!-- MAP FULL BACKGROUND -->
+        <div id="map"></div>
+
+        <!-- FLOATING SIDEBAR PANEL -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header" onclick="handleHeaderClick()">
+                <div class="sidebar-header-title">
+                    <span>🐾</span>
+                    <span>Venues & Places</span>
+                </div>
+                <button class="toggle-sidebar-btn" id="toggleBtn" title="Toggle List">◄</button>
+            </div>
+
             <div class="controls">
                 <input type="text" id="searchInput" class="search-box" placeholder="Search venues or area..." onkeyup="filterVenues()">
                 <div class="pawmitted-trail"></div>
@@ -416,9 +518,6 @@
 
             <div id="venueList" class="venue-list"></div>
         </div>
-
-        <!-- VISUAL MAP -->
-        <div id="map"></div>
     </div>
 
     <!-- Leaflet JS -->
@@ -430,11 +529,42 @@
         setTimeout(() => {
         const splash = document.getElementById('splash-screen');
         splash.classList.add('fade-out');
-        // Ensure map resizes properly after splash fades out
         setTimeout(() => {
         map.invalidateSize();
         }, 800);
         }, 2300);
+        });
+
+        // MINIMIZE / EXPAND SIDEBAR
+        function toggleSidebar(e) {
+        if (e) e.stopPropagation();
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleBtn');
+
+        sidebar.classList.toggle('minimized');
+        const isMinimized = sidebar.classList.contains('minimized');
+        const isMobile = window.innerWidth <= 768;
+
+        if (isMinimized) {
+        toggleBtn.innerHTML = '🐾';
+        } else {
+        toggleBtn.innerHTML = isMobile ? '▼' : '◄';
+        }
+
+        setTimeout(() => {
+        map.invalidateSize();
+        }, 350);
+        }
+
+        function handleHeaderClick() {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar.classList.contains('minimized')) {
+        toggleSidebar();
+        }
+        }
+
+        document.getElementById('toggleBtn').addEventListener('click', (e) => {
+        toggleSidebar(e);
         });
 
         const venues = [
@@ -482,12 +612,19 @@
         let userLon = -0.0096;
         let selectedCategory = 'All';
 
-        const map = L.map('map').setView([userLat, userLon], 14);
+        // INITIALIZE MAP WITH ZOOM CONTROL IN TOP-RIGHT
+        const map = L.map('map', {
+        attributionControl: false,
+        zoomControl: false
+        }).setView([userLat, userLon], 14);
+
+        L.control.zoom({
+        position: 'topright'
+        }).addTo(map);
 
         // ESRI WORLD STREET MAP TILES
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 19,
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+        maxZoom: 19
         }).addTo(map);
 
         let markers = [];
